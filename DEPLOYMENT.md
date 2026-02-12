@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js 18+ installed
+- Node.js 20.x installed (required for better-sqlite3 compatibility)
 - Anthropic API key
 - Twilio account (for WhatsApp integration)
 - Public domain or ngrok for webhooks
@@ -88,7 +88,41 @@ Configure Twilio:
 
 ## Production Deployment
 
-### Option 1: Railway
+> **⚠️ Important: SQLite in Serverless Environments**
+> 
+> This application uses SQLite (better-sqlite3), which has important limitations in serverless environments like Vercel:
+> - **Ephemeral storage**: Data is reset on every deploy
+> - **No persistence**: User data, conversations, and analytics will be lost
+> 
+> **For production use with Vercel**, migrate to a persistent database:
+> - **Turso** (SQLite-compatible, recommended)
+> - **Supabase** (PostgreSQL)
+> - **PlanetScale** (MySQL)
+> - **Neon** (PostgreSQL)
+> 
+> See "Database Migration to PostgreSQL" section below for migration steps.
+
+### Option 1: Vercel (Requires Database Migration)
+
+1. Install Vercel CLI:
+```bash
+npm install -g vercel
+```
+
+2. Deploy:
+```bash
+vercel
+```
+
+3. Set environment variables in Vercel dashboard
+
+4. **Important**: The application is configured to use Node.js 20.x for compatibility with better-sqlite3
+   - This is enforced via `package.json` engines field
+   - And via `vercel.json` runtime configuration
+
+5. **Migrate away from SQLite** before production use (see warning above)
+
+### Option 2: Railway
 
 1. Install Railway CLI:
 ```bash
@@ -106,7 +140,7 @@ railway up
 
 4. Add custom domain and update webhook URL
 
-### Option 2: Render
+### Option 3: Render
 
 1. Create `render.yaml`:
 
@@ -134,7 +168,7 @@ services:
 3. Configure environment variables
 4. Deploy
 
-### Option 3: DigitalOcean App Platform
+### Option 4: DigitalOcean App Platform
 
 1. Create app from GitHub
 2. Set build command: `npm install && npm run build`
@@ -142,13 +176,13 @@ services:
 4. Configure environment variables
 5. Deploy
 
-### Option 4: Manual VPS Deployment
+### Option 5: Manual VPS Deployment
 
 On your VPS (Ubuntu/Debian):
 
 ```bash
-# Install Node.js
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+# Install Node.js 20.x
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
 # Clone repository

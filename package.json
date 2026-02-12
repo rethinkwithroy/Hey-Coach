@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "description": "WhatsApp Executive Coach Bot",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "server:dev": "tsx watch server/index.ts",
