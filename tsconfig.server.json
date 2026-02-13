@@ -4,7 +4,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "noEmit": false,
-    "outDir": "./dist",
+    "outDir": "./dist/server",
     "allowImportingTsExtensions": false
   },
   "include": ["server/**/*"],
