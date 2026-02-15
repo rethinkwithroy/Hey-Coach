@@ -12,7 +12,6 @@ import {
   generateCoachResponse,
   generateClientSimulatorResponse,
   evaluateCoachingResponse,
-  generateFeedbackSummary,
 } from '../ai/coach.js'
 
 const router = express.Router()
@@ -73,13 +72,13 @@ router.patch('/sessions/:id', async (req, res) => {
   try {
     const { id } = req.params
     const { status, score, notes } = req.body
-    
+
     if (status === 'completed') {
       await sessionQueries.complete(id, score, notes)
     } else if (status) {
       await sessionQueries.updateStatus(id, status)
     }
-    
+
     const session = await sessionQueries.findById(id)
     res.json(session)
   } catch (error) {
@@ -158,8 +157,8 @@ router.post('/practice/:attemptId/message', async (req, res) => {
     )
 
     const evaluation = await evaluateCoachingResponse(userMessage, {
-      clientMessage: conversationHistory.length > 0 
-        ? conversationHistory[conversationHistory.length - 1].content 
+      clientMessage: conversationHistory.length > 0
+        ? conversationHistory[conversationHistory.length - 1].content
         : 'Initial greeting',
       scenario: assignment.scenario,
       conversationHistory,
@@ -192,7 +191,7 @@ router.post('/practice/:attemptId/complete', async (req, res) => {
     const { score, feedback, metrics } = req.body
 
     await practiceAttemptQueries.complete(attemptId, score, feedback, metrics)
-    
+
     const attempt = await practiceAttemptQueries.findById(attemptId)
     if (attempt) {
       await assignmentQueries.complete(attempt.assignmentId, score, feedback)
@@ -217,7 +216,7 @@ router.get('/practice/assignment/:assignmentId', async (req, res) => {
 router.get('/messages', async (req, res) => {
   try {
     const { sessionId, assignmentId } = req.query
-    
+
     if (sessionId) {
       const messages = await messageQueries.findBySession(sessionId as string)
       res.json(messages)

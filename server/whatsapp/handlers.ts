@@ -167,6 +167,6 @@ async function handleCommand(phoneNumber: string, command: string, userId: strin
   }
 }
 
-export async function handleWebhookVerification(req: Request, res: Response): Promise<void> {
+export async function handleWebhookVerification(_req: Request, res: Response): Promise<void> {
   res.status(200).send('Webhook verified')
 }
