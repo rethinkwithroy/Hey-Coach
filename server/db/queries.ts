@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, desc, sql } from 'drizzle-orm'
+import { eq, and, gte, lte, desc } from 'drizzle-orm'
 import { db, schema } from './index.js'
 import { nanoid } from 'nanoid'
 
@@ -32,7 +32,7 @@ export const sessionQueries = {
       userId,
       title,
       type,
-      scheduledAt: scheduledAt ? Math.floor(scheduledAt.getTime() / 1000) : undefined,
+      scheduledAt: scheduledAt ?? undefined,
     })
     return this.findById(id)
   },
@@ -48,20 +48,20 @@ export const sessionQueries = {
     })
   },
 
-  async updateStatus(id: string, status: string) {
-    await db.update(schema.sessions).set({ 
+  async updateStatus(id: string, status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled') {
+    await db.update(schema.sessions).set({
       status,
-      updatedAt: Math.floor(Date.now() / 1000)
+      updatedAt: new Date()
     }).where(eq(schema.sessions.id, id))
   },
 
   async complete(id: string, score?: number, notes?: string) {
     await db.update(schema.sessions).set({
       status: 'completed',
-      completedAt: Math.floor(Date.now() / 1000),
+      completedAt: new Date(),
       score,
       notes,
-      updatedAt: Math.floor(Date.now() / 1000)
+      updatedAt: new Date()
     }).where(eq(schema.sessions.id, id))
   },
 }
@@ -79,7 +79,7 @@ export const assignmentQueries = {
       id,
       userId,
       ...data,
-      dueDate: data.dueDate ? Math.floor(data.dueDate.getTime() / 1000) : undefined,
+      dueDate: data.dueDate ?? undefined,
     })
     return this.findById(id)
   },
@@ -95,20 +95,20 @@ export const assignmentQueries = {
     })
   },
 
-  async updateStatus(id: string, status: string) {
-    await db.update(schema.assignments).set({ 
+  async updateStatus(id: string, status: 'pending' | 'in_progress' | 'completed' | 'overdue') {
+    await db.update(schema.assignments).set({
       status,
-      updatedAt: Math.floor(Date.now() / 1000)
+      updatedAt: new Date()
     }).where(eq(schema.assignments.id, id))
   },
 
   async complete(id: string, score: number, feedback: string) {
     await db.update(schema.assignments).set({
       status: 'completed',
-      completedAt: Math.floor(Date.now() / 1000),
+      completedAt: new Date(),
       score,
       feedback,
-      updatedAt: Math.floor(Date.now() / 1000)
+      updatedAt: new Date()
     }).where(eq(schema.assignments.id, id))
   },
 }
@@ -167,7 +167,7 @@ export const practiceAttemptQueries = {
   async complete(id: string, score: number, feedback: string, metrics: any) {
     await db.update(schema.practiceAttempts).set({
       status: 'completed',
-      completedAt: Math.floor(Date.now() / 1000),
+      completedAt: new Date(),
       score,
       feedback,
       metrics,
@@ -192,10 +192,10 @@ export const voiceCallQueries = {
     return db.query.voiceCalls.findFirst({ where: eq(schema.voiceCalls.id, id) })
   },
 
-  async updateStatus(id: string, status: string) {
-    await db.update(schema.voiceCalls).set({ 
+  async updateStatus(id: string, status: 'initiated' | 'in_progress' | 'completed' | 'failed') {
+    await db.update(schema.voiceCalls).set({
       status,
-      updatedAt: Math.floor(Date.now() / 1000)
+      updatedAt: new Date()
     }).where(eq(schema.voiceCalls.id, id))
   },
 
@@ -209,7 +209,7 @@ export const voiceCallQueries = {
     await db.update(schema.voiceCalls).set({
       status: 'completed',
       ...data,
-      updatedAt: Math.floor(Date.now() / 1000)
+      updatedAt: new Date()
     }).where(eq(schema.voiceCalls.id, id))
   },
 }
@@ -228,8 +228,8 @@ export const progressMetricsQueries = {
       id,
       userId,
       ...data,
-      periodStart: Math.floor(data.periodStart.getTime() / 1000),
-      periodEnd: Math.floor(data.periodEnd.getTime() / 1000),
+      periodStart: data.periodStart,
+      periodEnd: data.periodEnd,
     })
     return this.findById(id)
   },
@@ -243,8 +243,8 @@ export const progressMetricsQueries = {
       where: and(
         eq(schema.progressMetrics.userId, userId),
         eq(schema.progressMetrics.period, period),
-        gte(schema.progressMetrics.periodStart, Math.floor(start.getTime() / 1000)),
-        lte(schema.progressMetrics.periodEnd, Math.floor(end.getTime() / 1000))
+        gte(schema.progressMetrics.periodStart, start),
+        lte(schema.progressMetrics.periodEnd, end)
       ),
       orderBy: [desc(schema.progressMetrics.periodStart)],
     })

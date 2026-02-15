@@ -1,8 +1,10 @@
-import Anthropic from '@anthropic-ai/sdk'
+import Groq from 'groq-sdk'
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || '',
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY || '',
 })
+
+const MODEL = 'openai/gpt-oss-20b'
 
 const COACH_SYSTEM_PROMPT = `You are an experienced executive coach specializing in leadership development, communication skills, and professional growth. Your coaching style is:
 
@@ -50,20 +52,22 @@ export interface CoachingContext {
 }
 
 export async function generateCoachResponse(context: CoachingContext): Promise<string> {
-  const messages = context.messages.map(msg => ({
-    role: msg.role,
-    content: msg.content,
-  }))
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+    { role: 'system', content: COACH_SYSTEM_PROMPT },
+    ...context.messages.map(msg => ({
+      role: msg.role as 'user' | 'assistant',
+      content: msg.content,
+    })),
+  ]
 
-  const response = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
-    max_tokens: 1024,
-    system: COACH_SYSTEM_PROMPT,
+  const response = await groq.chat.completions.create({
+    model: MODEL,
+    max_completion_tokens: 1024,
+    temperature: 0.8,
     messages,
   })
 
-  const content = response.content[0]
-  return content.type === 'text' ? content.text : ''
+  return response.choices[0]?.message?.content || ''
 }
 
 export async function generateClientSimulatorResponse(
@@ -72,20 +76,22 @@ export async function generateClientSimulatorResponse(
 ): Promise<string> {
   const systemPrompt = `${SIMULATOR_SYSTEM_PROMPT}\n\nScenario: ${scenario}`
 
-  const messages = conversationHistory.map(msg => ({
-    role: (msg.role === 'assistant' ? 'user' : 'assistant') as 'user' | 'assistant',
-    content: msg.content,
-  }))
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+    { role: 'system', content: systemPrompt },
+    ...conversationHistory.map(msg => ({
+      role: (msg.role === 'assistant' ? 'user' : 'assistant') as 'user' | 'assistant',
+      content: msg.content,
+    })),
+  ]
 
-  const response = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
-    max_tokens: 512,
-    system: systemPrompt,
+  const response = await groq.chat.completions.create({
+    model: MODEL,
+    max_completion_tokens: 512,
+    temperature: 0.9,
     messages,
   })
 
-  const content = response.content[0]
-  return content.type === 'text' ? content.text : ''
+  return response.choices[0]?.message?.content || ''
 }
 
 export async function evaluateCoachingResponse(
@@ -127,11 +133,15 @@ Format your response as JSON:
   "feedback": "summary"
 }`
 
-  const response = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
-    max_tokens: 1024,
-    system: 'You are an expert coach evaluator. Provide constructive, specific feedback.',
+  const response = await groq.chat.completions.create({
+    model: MODEL,
+    max_completion_tokens: 1024,
+    temperature: 0.5,
     messages: [
+      {
+        role: 'system',
+        content: 'You are an expert coach evaluator. Provide constructive, specific feedback.',
+      },
       {
         role: 'user',
         content: evaluationPrompt,
@@ -139,8 +149,7 @@ Format your response as JSON:
     ],
   })
 
-  const content = response.content[0]
-  const text = content.type === 'text' ? content.text : '{}'
+  const text = response.choices[0]?.message?.content || '{}'
 
   const jsonMatch = text.match(/\{[\s\S]*\}/)
   if (jsonMatch) {
@@ -188,11 +197,15 @@ Provide:
 
 Keep the summary concise but insightful (4-6 sentences).`
 
-  const response = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
-    max_tokens: 512,
-    system: 'You are an expert coaching mentor providing developmental feedback.',
+  const response = await groq.chat.completions.create({
+    model: MODEL,
+    max_completion_tokens: 512,
+    temperature: 0.7,
     messages: [
+      {
+        role: 'system',
+        content: 'You are an expert coaching mentor providing developmental feedback.',
+      },
       {
         role: 'user',
         content: summaryPrompt,
@@ -200,6 +213,5 @@ Keep the summary concise but insightful (4-6 sentences).`
     ],
   })
 
-  const content = response.content[0]
-  return content.type === 'text' ? content.text : 'Unable to generate summary'
+  return response.choices[0]?.message?.content || 'Unable to generate summary'
 }

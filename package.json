@@ -22,7 +22,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\""
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.20.0",
+    "groq-sdk": "^0.15.0",
     "axios": "^1.6.8",
     "better-sqlite3": "^12.6.2",
     "cors": "^2.8.5",
