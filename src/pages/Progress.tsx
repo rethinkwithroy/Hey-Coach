@@ -71,7 +71,9 @@ export default function Progress() {
                   key={session.id}
                   title={session.title}
                   score={session.score}
-                  date={new Date(session.completedAt * 1000).toLocaleDateString()}
+                  date={session.completedAt
+                    ? new Date(session.completedAt * 1000).toLocaleDateString()
+                    : new Date(session.createdAt * 1000).toLocaleDateString()}
                 />
               ))}
             </div>
@@ -88,7 +90,9 @@ export default function Progress() {
                   key={assignment.id}
                   title={assignment.title}
                   score={assignment.score}
-                  date={new Date(assignment.completedAt * 1000).toLocaleDateString()}
+                  date={assignment.completedAt
+                    ? new Date(assignment.completedAt * 1000).toLocaleDateString()
+                    : new Date(assignment.createdAt * 1000).toLocaleDateString()}
                 />
               ))}
             </div>

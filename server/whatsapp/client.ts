@@ -1,10 +1,20 @@
 import twilio from 'twilio'
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID
-const authToken = process.env.TWILIO_AUTH_TOKEN
+const accountSid = process.env.TWILIO_ACCOUNT_SID || ''
+const authToken = process.env.TWILIO_AUTH_TOKEN || ''
 const whatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER || 'whatsapp:+14155238886'
 
-export const twilioClient = twilio(accountSid, authToken)
+let _twilioClient: ReturnType<typeof twilio> | null = null
+
+function getTwilioClient() {
+  if (!_twilioClient) {
+    if (!accountSid || !authToken) {
+      throw new Error('Twilio credentials not configured')
+    }
+    _twilioClient = twilio(accountSid, authToken)
+  }
+  return _twilioClient
+}
 
 export async function sendWhatsAppMessage(to: string, message: string): Promise<void> {
   if (!accountSid || !authToken) {
@@ -15,7 +25,7 @@ export async function sendWhatsAppMessage(to: string, message: string): Promise<
   try {
     const formattedTo = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`
     
-    await twilioClient.messages.create({
+    await getTwilioClient().messages.create({
       from: whatsappNumber,
       to: formattedTo,
       body: message,
@@ -34,7 +44,7 @@ export async function initiateWhatsAppCall(to: string, callbackUrl: string): Pro
   try {
     const formattedTo = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`
     
-    const call = await twilioClient.calls.create({
+    const call = await getTwilioClient().calls.create({
       from: whatsappNumber,
       to: formattedTo,
       url: callbackUrl,
@@ -49,7 +59,7 @@ export async function initiateWhatsAppCall(to: string, callbackUrl: string): Pro
 
 export async function getCallRecording(callSid: string): Promise<string | null> {
   try {
-    const recordings = await twilioClient.recordings.list({ callSid, limit: 1 })
+    const recordings = await getTwilioClient().recordings.list({ callSid, limit: 1 })
     
     if (recordings.length > 0) {
       const recordingUrl = `https://api.twilio.com${recordings[0].uri.replace('.json', '.mp3')}`
