@@ -13,6 +13,10 @@ app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() })
+})
+
 app.get('/api/whatsapp/webhook', handleWebhookVerification)
 app.post('/api/whatsapp/webhook', handleIncomingMessage)
 
