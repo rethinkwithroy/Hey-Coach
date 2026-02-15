@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { api, mockUserId } from '../lib/api'
-import { Send, CheckCircle, AlertCircle, TrendingUp, ArrowLeft } from 'lucide-react'
+import { Send, CheckCircle, TrendingUp, ArrowLeft } from 'lucide-react'
 
 export default function AssignmentPractice() {
   const { id } = useParams()
@@ -45,12 +45,12 @@ export default function AssignmentPractice() {
         userMessage,
         assignment,
       }),
-    onSuccess: (data) => {
+    onSuccess: (data, userMessage) => {
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: inputValue,
+          content: userMessage,
           evaluation: data.evaluation,
         },
         {

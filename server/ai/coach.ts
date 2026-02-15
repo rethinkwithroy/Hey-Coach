@@ -73,7 +73,7 @@ export async function generateClientSimulatorResponse(
   const systemPrompt = `${SIMULATOR_SYSTEM_PROMPT}\n\nScenario: ${scenario}`
 
   const messages = conversationHistory.map(msg => ({
-    role: msg.role === 'assistant' ? 'user' : 'assistant',
+    role: (msg.role === 'assistant' ? 'user' : 'assistant') as 'user' | 'assistant',
     content: msg.content,
   }))
 
@@ -144,12 +144,16 @@ Format your response as JSON:
 
   const jsonMatch = text.match(/\{[\s\S]*\}/)
   if (jsonMatch) {
-    const evaluation = JSON.parse(jsonMatch[0])
-    return {
-      score: evaluation.score || 0,
-      feedback: evaluation.feedback || '',
-      strengths: evaluation.strengths || [],
-      improvements: evaluation.improvements || [],
+    try {
+      const evaluation = JSON.parse(jsonMatch[0])
+      return {
+        score: evaluation.score || 0,
+        feedback: evaluation.feedback || '',
+        strengths: evaluation.strengths || [],
+        improvements: evaluation.improvements || [],
+      }
+    } catch {
+      // Fall through to default response if JSON is malformed
     }
   }
 

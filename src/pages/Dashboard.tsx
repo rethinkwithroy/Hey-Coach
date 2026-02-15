@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api, mockUserId } from '../lib/api'
 import { Calendar, CheckCircle, TrendingUp, MessageSquare } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 export default function Dashboard() {
   const { data: sessions } = useQuery({
@@ -44,7 +45,9 @@ export default function Dashboard() {
         <StatCard
           icon={<TrendingUp size={24} />}
           title="Avg Score"
-          value={completedAssignments > 0 ? '85%' : 'N/A'}
+          value={completedAssignments > 0
+            ? `${Math.round(assignments.filter((a: any) => a.status === 'completed').reduce((sum: number, a: any) => sum + (a.score || 0), 0) / completedAssignments)}%`
+            : 'N/A'}
           subtitle="Keep improving!"
           color="#f59e0b"
         />
@@ -92,16 +95,16 @@ export default function Dashboard() {
 
         <Card title="Quick Actions">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <ActionButton href="/sessions" color="#3b82f6">
+            <ActionButton to="/sessions" color="#3b82f6">
               Schedule Session
             </ActionButton>
-            <ActionButton href="/chat" color="#10b981">
+            <ActionButton to="/chat" color="#10b981">
               Start Coaching Chat
             </ActionButton>
-            <ActionButton href="/assignments" color="#f59e0b">
+            <ActionButton to="/assignments" color="#f59e0b">
               View Assignments
             </ActionButton>
-            <ActionButton href="/progress" color="#8b5cf6">
+            <ActionButton to="/progress" color="#8b5cf6">
               Check Progress
             </ActionButton>
           </div>
@@ -176,10 +179,10 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-function ActionButton({ href, children, color }: any) {
+function ActionButton({ to, children, color }: any) {
   return (
-    <a
-      href={href}
+    <Link
+      to={to}
       style={{
         display: 'block',
         padding: '16px',
@@ -195,6 +198,6 @@ function ActionButton({ href, children, color }: any) {
       onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
     >
       {children}
-    </a>
+    </Link>
   )
 }

@@ -52,10 +52,13 @@ export async function handleIncomingMessage(req: Request, res: Response): Promis
 
     const sessionMessages = await messageQueries.findBySession(activeSession.id)
     const context = {
-      messages: sessionMessages.reverse().map(m => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-      })),
+      messages: sessionMessages
+        .reverse()
+        .filter(m => m.role === 'user' || m.role === 'assistant')
+        .map(m => ({
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+        })),
       userInfo: {
         name: user.name,
       },
@@ -97,7 +100,7 @@ async function handleCommand(phoneNumber: string, command: string, userId: strin
     case '/session':
       const existingSession = await sessionQueries.findByUser(userId)
       const active = existingSession.find(s => s.status === 'in_progress')
-      
+
       if (active) {
         await sendWhatsAppMessage(
           phoneNumber,
@@ -122,7 +125,7 @@ async function handleCommand(phoneNumber: string, command: string, userId: strin
     case '/endsession':
       const sessions = await sessionQueries.findByUser(userId)
       const activeSession = sessions.find(s => s.status === 'in_progress')
-      
+
       if (!activeSession) {
         await sendWhatsAppMessage(phoneNumber, 'No active session found.')
         return
